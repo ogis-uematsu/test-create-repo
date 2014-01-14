@@ -1,0 +1,87 @@
+B1;3402;0c<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>クラスタリング結果</title>
+</head>
+<body>
+  <p>K-meansによるクラスタリング結果</p>
+
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script>
+    var width = 1024;
+    var height = 768;
+    var shuffle = function() {return Math.random()-.5};
+    var colors = d3.scale.category20()
+      .range().sort(shuffle);
+    var xscale = d3.scale.linear().domain([-2,4]).range([0,width]);
+    var yscale = d3.scale.linear().domain([-2,4]).range([0,height]);
+
+
+
+    var svg = d3.select("body").append("svg")
+      .attr({
+        width: width,
+        height: height
+      });
+
+    d3.json('https://raw.github.com/ogis-uematsu/test-create-repo/master/clusters.json', function(error, clustersJson) {
+      clustersJson.forEach(function (cluster, i){
+        var points = cluster.points; 
+
+        svg.selectAll('lines')
+          .data(points)
+          .enter().append("line")
+          .attr('stroke','gray')
+          .attr('stroke-width', '1px')
+          .attr('x1', function(d) { return xscale(d.x); })
+          .attr('x2', xscale(cluster.cx))
+          .attr('y1', function(d) { return yscale(d.y); })
+          .attr('y2', yscale(cluster.cy));
+
+        svg.selectAll('points')
+          .data(points).enter().append("circle")
+          .attr('cx', function (d) {return xscale(d.x);})
+          .attr('cy', function (d) {return yscale(d.y);})
+          .attr('r', 4)
+          .attr('fill', function(d) { return colors[i];});
+      });
+      var clusters = svg.selectAll('ellipse')
+        .data(clustersJson)
+        .enter().append("circle")
+        .attr('cx', function(d) { return xscale(d.cx); })
+        .attr('cy', function(d) { return yscale(d.cy); })
+        .attr('r', 5)
+        .attr('fill', 'black');
+    });
+
+  </script>
+<!--
+      var clusters = svg.selectAll('ellipse')
+        .data(clustersJson)
+        .enter().append("ellipse")
+        .attr('cx', function(d) { return xscale(d.cx); })
+        .attr('cy', function(d) { return yscale(d.cy); })
+        .attr('rx',  function(d) { return xscale(d.rx); })
+        .attr('ry',  function(d) { return yscale(d.ry); })
+        .attr('stroke', function(d,i) { return colors[i]; })
+        .attr('fill', 'white');
+
+      clustersJson.forEach(function (cluster, i){
+        console.log('cluster No. ' + i);
+        var border = svg.selectAll('border'+i)
+          .data(cluster).enter().append("ellipse")
+          .attr('cx', function (d) {return d.cx * 100 + width/2;})
+          .attr('cy', function (d) {return d.cy * 100 + width/2;})
+          .attr('rx', function (d) {return d.rx * 100 ;})
+          .attr('ry', function (d) {return d.ry * 100 ;})
+          .attr('stroke', 'red')
+          .attr('fill', 'white');
+        console.log(border);
+
+
+
+-->
+
+</body>
+</html>
