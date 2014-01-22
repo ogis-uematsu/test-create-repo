@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>クラスタリング結果</title>
+</head>
+<style>
+  .noode circle{
+    cursor: pointer;
+    stroke: blue;
+    stroke-width: 1.5px;
+  }
+
+  .node text {
+    pointer-events: node;
+    text-anchor: middle;
+  }
+
+  line.link {
+    fill: none;
+    stroke: gray;
+    stroke-width: 1.5px;
+  }
+</style>
+<body>
+  <p>ニュース記事のクラスタリング</p>
+
+  <!-- Based on http://bl.ocks.org/mbostock/1093130 -->
+
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script>
+    var width = 1024;
+    var height = 768;
+
+    var force = d3.layout.force()
+      .charge(-120)
+      .gravity(.05)
+      .size([width, height])
+      .linkDistance(80)
+      .on("tick", tick);
+
+    var svg = d3.select("body").append("svg")
+      .attr({
+        width: width,
+        height: height
+      });
+
+
+    var link = svg.selectAll(".link"),
+        node = svg.selectAll(".node");
+
+    var news = [];
+    d3.json('news.json', function(error, newsJson){
+      news = newsJson;
+      update();
+    });
+
+
+
+    // Most of this function was taken from http://bl.ocks.org/mbostock/1093130
+    function update() {
+          var nodes = initNodes(news);
+          var links = d3.layout.tree().links(nodes);
+      force
+          .nodes(nodes)
+          .links(links)
+          .start();
+      
+      // Update links.
+      link = link.data(links, function(d) { return d.target.id; });
+      
+      link.exit().remove();
+      
+      link.enter().insert("line", ".node")
+          .attr("class", "link")
+          .attr("linkDistance", distance);
+      
+      // Update nodes.
+      node = node.data(nodes, function(d) { return d.id; });
+      
+      node.exit().remove();
+      
+      var nodeEnter = node.enter().append("g")
+          .attr("class", "node")
+          .call(force.drag);
+      
+      nodeEnter.append("circle")
+          .attr("r", function(d) { return Math.sqrt(d.size) / 10 || 4.5; });
+      
+      nodeEnter.append("text")
+          .attr("dy", ".35em")
+          .text(function(d) { return d.name; });
+      
+      node.select("circle")
+          .style("fill", color);      
+    }
+
+    function tick() {
+      link.attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
+    
+      node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+    }
+
+    
+    function color(d) {
+      return d.children ? "lightblue" 
+          : "orange";
+    }
+
+    function distance(d) {
+      return (d.target.children && d.source.children) ? 240
+        : 80;
+    }
+    
+    function initNodes(news){
+      var nodes = [];
+      var i = 0 ;
+
+      var clusters = [];
+      news.forEach(function (cluster){
+        var words = [];
+        cluster.topwords.forEach(function (word){
+          var node = { 'id': ++i,
+            'name' : word,
+            'size' : 10000}
+          nodes.push(node);
+          words.push(node);
+        });
+        var nodeWords = {'id': ++i,
+          'name': 'TopWords',
+           'children': words };
+        nodes.push(nodeWords);
+
+        var documents = []
+        cluster.documents.forEach(function (document){
+          var node = {'id': ++i,
+            'name' : document,
+            'size' : 20000}
+          nodes.push(node);
+          documents.push(node);
+        });
+        var nodeDocuments = {'id': ++i,
+          'name': 'Documents',
+          'children': documents };
+        nodes.push(nodeDocuments);
+
+        var node = {'id': ++i,
+          'name': 'Cluster' + cluster.cluster,
+          'children': [nodeWords, nodeDocuments]};
+        nodes.push(node);
+        clusters.push(node)
+
+      });
+      nodes.push({
+        'id': ++i,
+        'name': 'news',
+        'children': clusters
+      });
+      console.log(nodes);
+      return nodes;
+    }
+  </script>
+</body>
+</html>

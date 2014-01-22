@@ -25,7 +25,7 @@
         height: height
       });
 
-    d3.json('https://raw.github.com/ogis-uematsu/test-create-repo/master/clusters.json', function(error, clustersJson) {
+    d3.json('clusters.json', function(error, clustersJson) {
       clustersJson.forEach(function (cluster, i){
         var points = cluster.points; 
 
@@ -56,32 +56,5 @@
     });
 
   </script>
-<!--
-      var clusters = svg.selectAll('ellipse')
-        .data(clustersJson)
-        .enter().append("ellipse")
-        .attr('cx', function(d) { return xscale(d.cx); })
-        .attr('cy', function(d) { return yscale(d.cy); })
-        .attr('rx',  function(d) { return xscale(d.rx); })
-        .attr('ry',  function(d) { return yscale(d.ry); })
-        .attr('stroke', function(d,i) { return colors[i]; })
-        .attr('fill', 'white');
-
-      clustersJson.forEach(function (cluster, i){
-        console.log('cluster No. ' + i);
-        var border = svg.selectAll('border'+i)
-          .data(cluster).enter().append("ellipse")
-          .attr('cx', function (d) {return d.cx * 100 + width/2;})
-          .attr('cy', function (d) {return d.cy * 100 + width/2;})
-          .attr('rx', function (d) {return d.rx * 100 ;})
-          .attr('ry', function (d) {return d.ry * 100 ;})
-          .attr('stroke', 'red')
-          .attr('fill', 'white');
-        console.log(border);
-
-
-
--->
-
 </body>
 </html>
